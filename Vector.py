@@ -8,7 +8,7 @@ class Vector3():
         return self.arr+o.arr
 
     def stereograhpic_projection(self):
-        return numpy.arr([self.x()/self.z(), self.y()/self.z()])
+        return Vector3(self.x()/self.z(), self.y()/self.z())
 
     def x(self):
         return self.arr[0]
