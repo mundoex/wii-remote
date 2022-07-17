@@ -1,0 +1,1 @@
+WII_POLL_RATE=200 #200hz
