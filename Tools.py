@@ -15,4 +15,4 @@ class Timer:
         return self.end-self.start
 
     def print(self):
-        print("Took: {0}ms",self.elapsed_time())
+        print("Took: {0}ms".format(self.elapsed_time()))

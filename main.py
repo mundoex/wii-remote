@@ -1,4 +1,3 @@
-from Vector import Vector3
 from Wii import WiiRemote, WiiEvents
 from consts import WII_POLL_RATE
 from MouseControl import Mouse
@@ -8,11 +7,9 @@ INPUT_POLL_RATE = 1
 SENSITIVY = 1
 
 def onUp(remote):
-    SENSITIVY+=0.1
     print("up")
 
 def onDown(remote):
-    SENSITIVY-=0.1
     print("down")
 
 def onLeft(remote):
@@ -49,16 +46,13 @@ def onZ(remote):
     print("z")
 
 def onTurnOnLed(ledChangeState):
-    print("Led {0} On | State: {1}",ledChangeState.index, ledChangeState.leds_state)
+    print("Led {0} On | State: {1}".format(ledChangeState.index, ledChangeState.leds_state))
 
 def onTurnOnOff(ledChangeState):
-    print("Led {0} Off | State: {1}",ledChangeState.index, ledChangeState.leds_state)
+    print("Led {0} On | State: {1}".format(ledChangeState.index, ledChangeState.leds_state))
 
 def onAcc(acc):
     print("Acc", acc)
-    v3=Vector3(acc)
-    v2=v3.stereograhpic_projection()
-    mouse.move(v2.x()*SENSITIVY, v2.y()*SENSITIVY)
 
 def onNunchukAcc(acc):
     print("Nunchuk Acc", acc)
@@ -67,7 +61,7 @@ def onNunchukStick(stick):
     print("Nunchuk Stick", stick)
 
 # Main
-remote=WiiRemote(input_poll_rate=WII_POLL_RATE, sensitivity=SENSITIVY)
+remote=WiiRemote(input_poll_rate=WII_POLL_RATE)
 remote.connect()
 
 # Setup listeners

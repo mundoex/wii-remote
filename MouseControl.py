@@ -9,7 +9,7 @@ class Mouse():
         }
         self.ui = UInput(self.capabilities)
 
-    def move(self,x,y):
-        self.ui.write(e.EV_REL, e.REL_X, x)
-        self.ui.write(e.EV_REL, e.REL_Y, y)
+    def move(self, x, y):
+        self.ui.write(e.EV_REL, e.REL_X, round(x))
+        self.ui.write(e.EV_REL, e.REL_Y, round(y))
         self.ui.syn()

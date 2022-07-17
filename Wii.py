@@ -2,9 +2,8 @@ from enum import Enum
 import cwiid
 import time
 from node_events import EventEmitter
-from Tools import Timer
-from Vector import Vector3
-from WiiAcc import WiiAcc
+import vectormath as vmath
+from operator import itemgetter
 
 REMOTE_BUTTONS=[
     cwiid.BTN_UP,
@@ -61,14 +60,12 @@ class LedChangeState:
         self.leds_state=leds_state
 
 class WiiRemote:
-    def __init__(self, input_poll_rate, sensitivity, starting_leds=0b0000):
+    def __init__(self, input_poll_rate, starting_leds=0b0000):
         self.listener=EventEmitter()
         self.wii=None
         self.cached_leds=starting_leds
         self.input_poll_rate=input_poll_rate
-        self.sensitivity=sensitivity
         self.running = False
-        self.accHandler=WiiAcc(Vector3())
 
     def setupMode(self):    
         # Set read button accelerometer (nunchuk and IR enables nunchuck)
@@ -76,6 +73,7 @@ class WiiRemote:
         self.wii.rpt_mode = cwiid.RPT_BTN | cwiid.RPT_ACC | cwiid.RPT_NUNCHUK | cwiid.RPT_IR
         time.sleep(1)
         self.running=True
+        self.updateLeds()
 
     def connect(self):
         while not self.wii: 
@@ -125,7 +123,7 @@ class WiiRemote:
 
     def updateRemote(self):
         # Main remote buttons
-        buttons = self.wii.state["buttons"]
+        buttons, acc = itemgetter("buttons", "acc")(self.wii.state)
         for remote_button in REMOTE_BUTTONS:
             is_btn_pressed = buttons & remote_button
             if is_btn_pressed:
@@ -133,18 +131,14 @@ class WiiRemote:
                 self.listener.emit(wii_event, self)
 
         # Main accelerator
-        acc = self.wii.state["acc"]
-        self.accHandler.update(acc)
-        self.listener.emit(acc)
+        self.listener.emit(WiiEvents.ACC, vmath.Vector3(acc))
         
     def updateNunchuk(self):
         nunchuk = self.wii.state["nunchuk"]
-        # Check if nunchuk connected
-        if nunchuk :    
-            nunchuk_buttons=nunchuk["buttons"]
-            nunchuk_stick=nunchuk["stick"]
-            nunchuk_acc=nunchuk["acc"]
-
+        nunchuk_buttons, nunchuk_stick, nunchuk_acc = itemgetter("buttons", "stick", "acc")(nunchuk)
+        # If nunchuk and nunchuk acc is working
+        is_acc_on=all(x == 0 for x in nunchuk_acc)
+        if nunchuk and is_acc_on:
             # Nunchuk buttons
             is_btn_c_press = nunchuk_buttons & cwiid.NUNCHUK_BTN_C
             is_btn_z_press = nunchuk_buttons & cwiid.NUNCHUK_BTN_Z
@@ -154,8 +148,8 @@ class WiiRemote:
                 self.listener.emit(WiiEvents.BTN_Z, self)
             
             # Nunchuk accelerator & stick
-            self.listener.emit(WiiEvents.NUNCHUK_ACC, nunchuk_acc)
-            self.listener.emit(WiiEvents.NUNCHUK_STICK, nunchuk_stick)
+            self.listener.emit(WiiEvents.NUNCHUK_ACC, vmath.Vector3(nunchuk_acc))
+            self.listener.emit(WiiEvents.NUNCHUK_STICK, vmath.Vector3(nunchuk_stick))
 
     def update(self):
         self.updateRemote()
