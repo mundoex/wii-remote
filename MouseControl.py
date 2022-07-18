@@ -9,6 +9,12 @@ class Mouse():
         }
         self.ui = UInput(self.capabilities)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.ui.close()
+
     def move(self, x, y):
         self.ui.write(e.EV_REL, e.REL_X, round(x))
         self.ui.write(e.EV_REL, e.REL_Y, round(y))
