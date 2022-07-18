@@ -1,21 +1,34 @@
+from SensitivyManager import SensitivityManager
 from Wii import WiiRemote, WiiEvents
-from consts import WII_POLL_RATE
+from consts import VECTOR2D_DOWN, VECTOR2D_LEFT, VECTOR2D_RIGHT, VECTOR2D_UP, WII_POLL_RATE
 from MouseControl import Mouse
 
 mouse=Mouse()
-INPUT_POLL_RATE = 1
-SENSITIVY = 1
+SENSITIVY = 0.2
+SENCE_MANAGER=SensitivityManager(SENSITIVY)
 
 def onUp(remote):
+    SENCE_MANAGER.move(VECTOR2D_UP)
+    (x,y)=SENCE_MANAGER.direction_v2()
+    mouse.move(0, y)
     print("up")
 
 def onDown(remote):
+    SENCE_MANAGER.move(VECTOR2D_DOWN)
+    (x,y)=SENCE_MANAGER.direction_v2()
+    mouse.move(0, y)
     print("down")
 
 def onLeft(remote):
+    SENCE_MANAGER.move(VECTOR2D_LEFT)
+    (x,y)=SENCE_MANAGER.direction_v2()
+    mouse.move(x, 0)
     print("left")
 
 def onRight(remote):
+    SENCE_MANAGER.move(VECTOR2D_RIGHT)
+    (x,y)=SENCE_MANAGER.direction_v2()
+    mouse.move(x, 0)
     print("right")
 
 def onA(remote):
@@ -36,7 +49,7 @@ def onMinus(remote):
 def onHome(remote):
     print("home")
 
-def onPlus(remote):
+def onPlus(remote): 
     print("plus")
 
 def onC(remote):

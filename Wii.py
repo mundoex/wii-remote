@@ -2,7 +2,7 @@ from enum import Enum
 import cwiid
 import time
 from node_events import EventEmitter
-import vectormath as vmath
+from vectormath import Vector3, Vector2
 from operator import itemgetter
 
 REMOTE_BUTTONS=[
@@ -131,7 +131,7 @@ class WiiRemote:
                 self.listener.emit(wii_event, self)
 
         # Main accelerator
-        self.listener.emit(WiiEvents.ACC, vmath.Vector3(acc))
+        self.listener.emit(WiiEvents.ACC, Vector3(acc))
         
     def updateNunchuk(self):
         if "nunchuk" in self.wii.state :
@@ -147,8 +147,8 @@ class WiiRemote:
                 self.listener.emit(WiiEvents.BTN_Z, self)
 
             # Nunchuk accelerator & stick
-            self.listener.emit(WiiEvents.NUNCHUK_ACC, vmath.Vector3(nunchuk_acc))
-            self.listener.emit(WiiEvents.NUNCHUK_STICK, vmath.Vector2(nunchuk_stick))
+            self.listener.emit(WiiEvents.NUNCHUK_ACC, Vector3(nunchuk_acc))
+            self.listener.emit(WiiEvents.NUNCHUK_STICK, Vector2(nunchuk_stick))
 
     def update(self):
         self.updateRemote()

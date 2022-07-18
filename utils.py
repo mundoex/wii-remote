@@ -1,5 +1,11 @@
 import time
 
+def clamp(value, min_value, max_value):
+    return min(max(value, min_value),max_value)
+
+def sign(num):
+    return -1 if num<0 else 1
+
 class Timer:
     def __init__(self):
         self.start=0
