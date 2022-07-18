@@ -145,7 +145,7 @@ class WiiRemote:
                 self.listener.emit(WiiEvents.BTN_C, self)
             if is_btn_z_press:
                 self.listener.emit(WiiEvents.BTN_Z, self)
-                
+
             # Nunchuk accelerator & stick
             self.listener.emit(WiiEvents.NUNCHUK_ACC, vmath.Vector3(nunchuk_acc))
             self.listener.emit(WiiEvents.NUNCHUK_STICK, vmath.Vector2(nunchuk_stick))
@@ -157,11 +157,11 @@ class WiiRemote:
     def run(self):
         next_loop_ms=time.time()*1000
         while self.running:
-            
+
             # If it is time to execute tick
             while next_loop_ms < time.time()*1000:
                 self.update()
-                next_loop_ms+=self.input_poll_rate
+                next_loop_ms+=self.input_poll_rate*0.001
                 cur_time_ms=time.time()*1000
 
                 # If next tick is in the future sleep until then
