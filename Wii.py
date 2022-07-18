@@ -134,11 +134,10 @@ class WiiRemote:
         self.listener.emit(WiiEvents.ACC, vmath.Vector3(acc))
         
     def updateNunchuk(self):
-        nunchuk = self.wii.state["nunchuk"]
-        nunchuk_buttons, nunchuk_stick, nunchuk_acc = itemgetter("buttons", "stick", "acc")(nunchuk)
-        # If nunchuk and nunchuk acc is working
-        is_acc_on=all(x == 0 for x in nunchuk_acc)
-        if nunchuk and is_acc_on:
+        if "nunchuk" in self.wii.state :
+            nunchuk = self.wii.state["nunchuk"]
+            nunchuk_buttons, nunchuk_stick, nunchuk_acc = itemgetter("buttons", "stick", "acc")(nunchuk)
+ 
             # Nunchuk buttons
             is_btn_c_press = nunchuk_buttons & cwiid.NUNCHUK_BTN_C
             is_btn_z_press = nunchuk_buttons & cwiid.NUNCHUK_BTN_Z
@@ -146,10 +145,10 @@ class WiiRemote:
                 self.listener.emit(WiiEvents.BTN_C, self)
             if is_btn_z_press:
                 self.listener.emit(WiiEvents.BTN_Z, self)
-            
+                
             # Nunchuk accelerator & stick
             self.listener.emit(WiiEvents.NUNCHUK_ACC, vmath.Vector3(nunchuk_acc))
-            self.listener.emit(WiiEvents.NUNCHUK_STICK, vmath.Vector3(nunchuk_stick))
+            self.listener.emit(WiiEvents.NUNCHUK_STICK, vmath.Vector2(nunchuk_stick))
 
     def update(self):
         self.updateRemote()
