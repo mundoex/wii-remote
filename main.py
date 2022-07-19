@@ -32,9 +32,11 @@ def onRight(remote):
     print("right")
 
 def onA(remote):
+    mouse.click()
     print("a")
 
 def onB(remote):
+    mouse.right_click()
     print("b")
 
 def on1(remote):

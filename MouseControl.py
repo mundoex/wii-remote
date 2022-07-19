@@ -1,10 +1,11 @@
 from evdev import UInput, ecodes as e
-
+import pyautogui
+import time
 # Only way that worked to move mouse on ubuntu
 class Mouse():
     def __init__(self):
         self.capabilities={
-            e.EV_REL : (e.REL_X, e.REL_Y), 
+            e.EV_REL : (e.REL_X, e.REL_Y),
             e.EV_KEY : (e.BTN_LEFT, e.BTN_RIGHT),
         }
         self.ui = UInput(self.capabilities)
@@ -19,3 +20,19 @@ class Mouse():
         self.ui.write(e.EV_REL, e.REL_X, round(x))
         self.ui.write(e.EV_REL, e.REL_Y, round(y))
         self.ui.syn()
+    
+    def click(self):
+        self.ui.write(e.EV_KEY, e.BTN_LEFT, 1)
+        self.ui.syn()
+        time.sleep(0.1)
+        self.ui.write(e.EV_KEY, e.BTN_LEFT, 0)
+        self.ui.syn()
+        time.sleep(0.1)
+        
+    def right_click(self):
+        self.ui.write(e.EV_KEY, e.BTN_RIGHT, 1)
+        self.ui.syn()
+        time.sleep(0.05)
+        self.ui.write(e.EV_KEY, e.BTN_RIGHT, 0)
+        self.ui.syn()
+        time.sleep(0.05)
