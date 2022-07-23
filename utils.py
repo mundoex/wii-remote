@@ -1,10 +1,20 @@
 import time
+from tkinter import Message, Toplevel,Tk
 
 def clamp(value, min_value, max_value):
     return min(max(value, min_value),max_value)
 
 def sign(num):
     return -1 if num<0 else 1
+
+def popup_window(title, message, timeout=1500):
+    root = Tk()
+    top = Toplevel()
+    top.title(title)
+    Message(top, text=message, padx=100, pady=100).pack()
+    top.after(timeout, root.destroy)
+    root.withdraw()
+    root.mainloop()
 
 class Timer:
     def __init__(self):

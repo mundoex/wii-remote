@@ -1,105 +1,64 @@
-from SensitivyManager import SensitivityManager
+import threading
 from Wii import WiiRemote, WiiEvents
-from consts import VECTOR2D_DOWN, VECTOR2D_LEFT, VECTOR2D_RIGHT, VECTOR2D_UP, WII_POLL_RATE
-from MouseControl import Mouse
+from WiiRemoteMode import WiiRemoteMode
+from consts import WII_POLL_RATE
+import time
 
-mouse=Mouse()
-SENSITIVY = 0.2
-SENCE_MANAGER=SensitivityManager(SENSITIVY)
+def update_wii_remote_listeners(remote, wii_remote_mode):
+    remote.listener.removeAllListeners()
+    remote.listener.on(WiiEvents.BTN_UP, wii_remote_mode.onUp)
+    remote.listener.on(WiiEvents.BTN_DOWN, wii_remote_mode.onDown)
+    remote.listener.on(WiiEvents.BTN_LEFT, wii_remote_mode.onLeft)
+    remote.listener.on(WiiEvents.BTN_RIGHT, wii_remote_mode.onRight)
+    remote.listener.on(WiiEvents.BTN_A, wii_remote_mode.onA)
+    remote.listener.on(WiiEvents.BTN_B, wii_remote_mode.onB)
+    remote.listener.on(WiiEvents.BTN_MINUS, wii_remote_mode.onMinus)
+    remote.listener.on(WiiEvents.BTN_HOME, wii_remote_mode.onHome)
+    remote.listener.on(WiiEvents.BTN_PLUS, wii_remote_mode.onPlus)
+    remote.listener.on(WiiEvents.BTN_1, wii_remote_mode.on1)
+    remote.listener.on(WiiEvents.BTN_2, wii_remote_mode.on2)
+    remote.listener.on(WiiEvents.ACC, wii_remote_mode.onAcc)
 
-def onUp(remote):
-    SENCE_MANAGER.move(VECTOR2D_UP)
-    (x,y)=SENCE_MANAGER.direction_v2()
-    mouse.move(0, y)
-    print("up")
+    remote.listener.on(WiiEvents.BTN_C, wii_remote_mode.onC)
+    remote.listener.on(WiiEvents.BTN_Z, wii_remote_mode.onZ)
+    remote.listener.on(WiiEvents.NUNCHUK_ACC, wii_remote_mode.onNunchukAcc)
+    remote.listener.on(WiiEvents.NUNCHUK_STICK, wii_remote_mode.onNunchukStick)
 
-def onDown(remote):
-    SENCE_MANAGER.move(VECTOR2D_DOWN)
-    (x,y)=SENCE_MANAGER.direction_v2()
-    mouse.move(0, y)
-    print("down")
+    remote.listener.on(WiiEvents.LED_TURN_OFF, wii_remote_mode.onTurnOffLed)
+    remote.listener.on(WiiEvents.LED_TURN_ON, wii_remote_mode.onTurnOnLed)
+    
+    remote.listener.on(WiiEvents.CONNECTED, wii_remote_mode.onConnected)
+    remote.listener.on(WiiEvents.DISCONNECTED, wii_remote_mode.onDisconnected)
 
-def onLeft(remote):
-    SENCE_MANAGER.move(VECTOR2D_LEFT)
-    (x,y)=SENCE_MANAGER.direction_v2()
-    mouse.move(x, 0)
-    print("left")
+def wii_mote_heart_beat():
+    print("Starting Wii remote heart beat")
+    while True:
+        if g_remote != None:
+            if g_remote.wii != None:
+                try:
+                    g_remote.mutex.acquire()
+                    g_remote.wii.request_status()
+                    g_remote.bt_connection=True
+                except :
+                    g_remote.bt_connection=False
+                    g_remote.disconnect()
+                finally:
+                    g_remote.mutex.release()
+                    time.sleep(2)
 
-def onRight(remote):
-    SENCE_MANAGER.move(VECTOR2D_RIGHT)
-    (x,y)=SENCE_MANAGER.direction_v2()
-    mouse.move(x, 0)
-    print("right")
+g_remote=None
+g_modes=[]
+g_cur_mode=WiiRemoteMode()
+heart_beat_thread=threading.Thread(target=wii_mote_heart_beat)
 
-def onA(remote):
-    mouse.click()
-    print("a")
+while True:
+    if g_remote == None:
+        g_remote=WiiRemote(input_poll_rate=WII_POLL_RATE)
+        if not heart_beat_thread.is_alive():
+            heart_beat_thread.start()
+        update_wii_remote_listeners(g_remote, g_cur_mode)
+    else:
+        g_remote.connect()
 
-def onB(remote):
-    mouse.right_click()
-    print("b")
-
-def on1(remote):
-    print("1")
-
-def on2(remote):
-    print("2")
-
-def onMinus(remote):
-    print("minus")
-
-def onHome(remote):
-    print("home")
-
-def onPlus(remote): 
-    print("plus")
-
-def onC(remote):
-    print("c")
-
-def onZ(remote):
-    print("z")
-
-def onTurnOnLed(ledChangeState):
-    print("Led {0} On | State: {1}".format(ledChangeState.index, ledChangeState.leds_state))
-
-def onTurnOnOff(ledChangeState):
-    print("Led {0} On | State: {1}".format(ledChangeState.index, ledChangeState.leds_state))
-
-def onAcc(acc):
-    print("Acc", acc)
-
-def onNunchukAcc(acc):
-    print("Nunchuk Acc", acc)
-
-def onNunchukStick(stick):
-    print("Nunchuk Stick", stick)
-
-# Main
-remote=WiiRemote(input_poll_rate=WII_POLL_RATE)
-remote.connect()
-
-# Setup listeners
-remote.listener.on(WiiEvents.BTN_UP, onUp)
-remote.listener.on(WiiEvents.BTN_DOWN, onDown)
-remote.listener.on(WiiEvents.BTN_LEFT, onLeft)
-remote.listener.on(WiiEvents.BTN_RIGHT, onRight)
-remote.listener.on(WiiEvents.BTN_A, onA)
-remote.listener.on(WiiEvents.BTN_B, onB)
-remote.listener.on(WiiEvents.BTN_MINUS, onMinus)
-remote.listener.on(WiiEvents.BTN_HOME, onHome)
-remote.listener.on(WiiEvents.BTN_PLUS, onPlus)
-remote.listener.on(WiiEvents.BTN_1, on1)
-remote.listener.on(WiiEvents.BTN_2, on2)
-remote.listener.on(WiiEvents.BTN_C, onC)
-remote.listener.on(WiiEvents.BTN_Z, onZ)
-
-remote.listener.on(WiiEvents.ACC, onAcc)
-remote.listener.on(WiiEvents.NUNCHUK_ACC, onNunchukAcc)
-remote.listener.on(WiiEvents.NUNCHUK_STICK, onNunchukStick)
-
-remote.listener.on(WiiEvents.LED_TURN_ON, onTurnOnLed)
-remote.listener.on(WiiEvents.LED_TURN_OFF, onTurnOnOff)
-
-remote.turnOnLed(0)
-remote.run()
+    if g_remote.is_connected():
+        g_remote.run()

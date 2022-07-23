@@ -1,4 +1,5 @@
 from enum import Enum
+from threading import Lock
 import cwiid
 import time
 from node_events import EventEmitter
@@ -39,6 +40,8 @@ class WiiEvents(Enum):
     NUNCHUK_STICK="nunchukStick",
     LED_TURN_ON="ledOn",
     LED_TURN_OFF="ledOff",
+    CONNECTED="connected",
+    DISCONNECTED="disconnected"
 
 REMOTE_EVENT_DIC={
     cwiid.BTN_UP: WiiEvents.BTN_UP,
@@ -66,6 +69,8 @@ class WiiRemote:
         self.cached_leds=starting_leds
         self.input_poll_rate=input_poll_rate
         self.running = False
+        self.bt_connection=False
+        self.mutex=Lock()
 
     def setupMode(self):    
         # Set read button accelerometer (nunchuk and IR enables nunchuck)
@@ -73,24 +78,26 @@ class WiiRemote:
         self.wii.rpt_mode = cwiid.RPT_BTN | cwiid.RPT_ACC | cwiid.RPT_NUNCHUK | cwiid.RPT_IR
         time.sleep(1)
         self.running=True
-        self.updateLeds()
 
     def connect(self):
-        while not self.wii: 
+        while not self.is_connected(): 
             try: 
                 print("Attempting to connect")
                 self.wii=cwiid.Wiimote()
+                self.bt_connection=True
                 time.sleep(1)
                 self.setupMode()
+                self.listener.emit(WiiEvents.CONNECTED, self)
             except RuntimeError: 
                 print("Failed to connect")
                 time.sleep(1)
-        print("Connected")
 
     def disconnect(self):
         self.running = False
-        self.wii.led = 0
         self.wii = None
+        self.cached_leds=0b0000
+        self.bt_connection=False
+        self.listener.emit(WiiEvents.DISCONNECTED, None)
 
     def updateLeds(self):
         self.wii.led = self.cached_leds
@@ -151,23 +158,32 @@ class WiiRemote:
             self.listener.emit(WiiEvents.NUNCHUK_STICK, Vector2(nunchuk_stick))
 
     def update(self):
-        self.updateRemote()
-        self.updateNunchuk()
+        try:
+            self.mutex.acquire()
+            self.updateRemote()
+            self.updateNunchuk()
+        except :
+            pass
+        finally:
+            self.mutex.release()
+
+    def is_connected(self):
+        try:
+            return not self.wii == None and self.bt_connection
+        except RuntimeError:
+            return False
        
     def run(self):
         next_loop_ms=time.time()*1000
         while self.running:
-
             # If it is time to execute tick
-            while next_loop_ms < time.time()*1000:
+            while next_loop_ms < time.time()*1000 and self.bt_connection:
                 self.update()
                 next_loop_ms+=self.input_poll_rate*0.001
                 cur_time_ms=time.time()*1000
-
                 # If next tick is in the future sleep until then
                 if next_loop_ms > cur_time_ms : 
                     time.sleep((next_loop_ms-cur_time_ms)*0.001)
-
 
 
                 
